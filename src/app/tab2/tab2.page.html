@@ -13,15 +13,32 @@
   } @else if (counterService.counters().length === 0) {
     <p class="state-message">Historie je zatím prázdná.</p>
   } @else {
+    
+    <!-- Vyhledávací pole -->
+    <ion-searchbar
+      [value]="searchQuery()"
+      (ionInput)="searchQuery.set($event.detail.value ?? '')"
+      placeholder="Hledat podle názvu..."
+      [debounce]="250"
+      animated="true"
+    ></ion-searchbar>
+
     <div class="history-header">
-      <p>Počet záznamů: {{ counterService.counters().length }}</p>
+      <p>Počet záznamů: {{ filteredAndSortedCounters().length }}</p>
+      
+      <ion-select [value]="sortOrder()" (ionChange)="sortOrder.set($event.detail.value)" interface="popover">
+        <ion-select-option value="newest">Nejnovější</ion-select-option>
+        <ion-select-option value="oldest">Nejstarší</ion-select-option>
+      </ion-select>
+
       <ion-button color="danger" fill="outline" size="small" (click)="clear()">
         Vymazat vše
       </ion-button>
     </div>
 
     <ion-list>
-      @for (counter of counterService.counters(); track counter.id) {
+      <!-- Použijeme nový kombinovaný signál -->
+      @for (counter of filteredAndSortedCounters(); track counter.id) {
         <ion-item>
           <ion-label>
             <h2>{{ counter.name }}</h2>
@@ -43,4 +60,9 @@
       }
     </ion-list>
   }
+
+  <div class="ion-text-center ion-padding">
+    <h3>Celkový součet: {{ counterService.totalSum() }}</h3>
+  </div>
+  
 </ion-content>

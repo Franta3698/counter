@@ -1,6 +1,7 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import {
+  AlertController,
   IonButton,
   IonContent,
   IonHeader,
@@ -8,9 +9,13 @@ import {
   IonLabel,
   IonList,
   IonNote,
+  IonSearchbar,
+  IonSelect,
+  IonSelectOption,
   IonSpinner,
   IonTitle,
   IonToolbar,
+  ToastController,
 } from '@ionic/angular';
 import { CounterService } from '../services/counter.service';
 
@@ -27,6 +32,9 @@ import { CounterService } from '../services/counter.service';
     IonLabel,
     IonList,
     IonNote,
+    IonSearchbar,
+    IonSelect,
+    IonSelectOption,
     IonSpinner,
     IonTitle,
     IonToolbar,
@@ -34,16 +42,65 @@ import { CounterService } from '../services/counter.service';
 })
 export class Tab2Page implements OnInit {
   readonly counterService = inject(CounterService);
+  private readonly alertController = inject(AlertController);
+  private readonly toastController = inject(ToastController);
+
+  readonly sortOrder = signal<'newest' | 'oldest'>('newest');
+  readonly searchQuery = signal<string>('');
+
+  readonly filteredAndSortedCounters = computed(() => {
+    const counters = [...this.counterService.counters()];
+    const query = this.searchQuery().toLowerCase().trim();
+    const order = this.sortOrder();
+    const filtered = query
+      ? counters.filter((counter) => counter.name.toLowerCase().includes(query))
+      : counters;
+    return filtered.sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+
+      return order === 'newest' ? dateB - dateA : dateA - dateB;
+    });
+  });
+
+  private async showToast(message: string): Promise<void>{
+    const toast = await this.toastController.create({
+      message,
+      duration: 2000,
+      position: 'bottom',
+    });
+    await toast.present();
+  }
 
   async ngOnInit(): Promise<void> {
     await this.counterService.initialize();
   }
 
   async remove(id: string): Promise<void> {
+    await this.showToast('Počítadlo úspěšně smazáno');
     await this.counterService.remove(id);
+
   }
 
   async clear(): Promise<void> {
-    await this.counterService.clear();
+    const alert = await this.alertController.create({
+      header: 'Potvrzení smazání',
+      message: 'Opravdu chcete smazat celou historii počítadel?!',
+      buttons:[
+        {
+          text: 'Zrušit',
+          role: 'cancel',
+        },
+        {
+          text: 'Smazat vše',
+          role: 'destructive',
+          handler: async() => {
+            await this.counterService.clear();
+          }
+        }
+
+      ]
+    })
+    await alert.present();
   }
 }
