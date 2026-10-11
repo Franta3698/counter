@@ -1,39 +1,26 @@
-import { Component } from '@angular/core';
-import {
-  IonContent,
-  IonHeader,
-  IonItem,
-  IonLabel,
-  IonList,
-  IonListHeader,
-  IonNote,
-  IonTitle,
-  IonToolbar,
-} from '@ionic/angular';
+import { Component, inject } from '@angular/core';
+import { IonContent, IonHeader, IonTitle, IonToolbar } from '@ionic/angular';
 import { CounterComponent } from '../components/counter/counter.component';
 import { SavedCounter } from '../models/saved-counter';
+import { CounterService } from '../services/counter.service';
+import {
+  IonList,         
+  IonListHeader,   
+} from '@ionic/angular';
 
 @Component({
   selector: 'app-tab1',
   templateUrl: 'tab1.page.html',
   styleUrls: ['tab1.page.scss'],
-  imports: [
-    CounterComponent,
-    IonContent,
-    IonHeader,
-    IonItem,
-    IonLabel,
-    IonList,
-    IonListHeader,
-    IonNote,
-    IonTitle,
-    IonToolbar,
-  ],
+  imports: [IonListHeader, IonList, CounterComponent, IonContent, IonHeader, IonTitle, IonToolbar],
 })
 export class Tab1Page {
-  savedCounters: SavedCounter[] = [];
+  savedCounters(savedCounters: any) {
+    throw new Error('Method not implemented.');
+  }
+  private readonly counterService = inject(CounterService);
 
-  onSaved(counter: SavedCounter): void {
-    this.savedCounters.unshift(counter);
+  async onSaved(counter: SavedCounter): Promise<void> {
+    await this.counterService.add(counter);
   }
 }
