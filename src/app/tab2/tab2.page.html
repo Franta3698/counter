@@ -14,7 +14,6 @@
     <p class="state-message">Historie je zatím prázdná.</p>
   } @else {
     
-    <!-- Vyhledávací pole -->
     <ion-searchbar
       [value]="searchQuery()"
       (ionInput)="searchQuery.set($event.detail.value ?? '')"
@@ -22,10 +21,19 @@
       [debounce]="250"
       animated="true"
     ></ion-searchbar>
-
-    <div class="history-header">
+    <div class="ion-text-center">
       <p>Počet záznamů: {{ filteredAndSortedCounters().length }}</p>
+    </div>
+          
+    <div class="history-header">
+
       
+      <ion-select [value]="valueFilter()" (ionChange)="valueFilter.set($event.detail.value)" interface="popover">
+        <ion-select-option value="all">Všechny</ion-select-option>
+        <ion-select-option value="positive">Kladné</ion-select-option>
+        <ion-select-option value="negative">Záporné</ion-select-option>
+      </ion-select>
+
       <ion-select [value]="sortOrder()" (ionChange)="sortOrder.set($event.detail.value)" interface="popover">
         <ion-select-option value="newest">Nejnovější</ion-select-option>
         <ion-select-option value="oldest">Nejstarší</ion-select-option>
@@ -37,7 +45,6 @@
     </div>
 
     <ion-list>
-      <!-- Použijeme nový kombinovaný signál -->
       @for (counter of filteredAndSortedCounters(); track counter.id) {
         <ion-item>
           <ion-label>

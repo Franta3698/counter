@@ -12,13 +12,10 @@ import {
   selector: 'app-tab1',
   templateUrl: 'tab1.page.html',
   styleUrls: ['tab1.page.scss'],
-  imports: [IonListHeader, IonList, CounterComponent, IonContent, IonHeader, IonTitle, IonToolbar],
+  imports: [CounterComponent, IonContent, IonHeader, IonTitle, IonToolbar],
 })
 export class Tab1Page {
-  savedCounters(savedCounters: any) {
-    throw new Error('Method not implemented.');
-  }
-  private readonly counterService = inject(CounterService);
+  readonly counterService = inject(CounterService);
   private readonly toastController = inject(ToastController);
 
   private async showToast(message: string): Promise<void>{

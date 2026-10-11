@@ -47,14 +47,27 @@ export class Tab2Page implements OnInit {
 
   readonly sortOrder = signal<'newest' | 'oldest'>('newest');
   readonly searchQuery = signal<string>('');
+  readonly valueFilter = signal<'all' | 'positive' | 'negative'>('all'); // 1. Nový signál pro filtr hodnot
 
   readonly filteredAndSortedCounters = computed(() => {
     const counters = [...this.counterService.counters()];
     const query = this.searchQuery().toLowerCase().trim();
     const order = this.sortOrder();
-    const filtered = query
+    const valFilter = this.valueFilter();
+
+    // 1. Filtrování podle textu (názvu)
+    let filtered = query
       ? counters.filter((counter) => counter.name.toLowerCase().includes(query))
       : counters;
+
+    // 2. Filtrování podle hodnoty (kladné / záporné)
+    if (valFilter === 'positive') {
+      filtered = filtered.filter((counter) => counter.value > 0);
+    } else if (valFilter === 'negative') {
+      filtered = filtered.filter((counter) => counter.value < 0);
+    }
+
+    // 3. Řazení výsledků
     return filtered.sort((a, b) => {
       const dateA = new Date(a.createdAt).getTime();
       const dateB = new Date(b.createdAt).getTime();
@@ -63,11 +76,12 @@ export class Tab2Page implements OnInit {
     });
   });
 
-  private async showToast(message: string): Promise<void>{
+  private async showToast(message: string): Promise<void> {
     const toast = await this.toastController.create({
       message,
       duration: 2000,
       position: 'bottom',
+      color: 'dark',
     });
     await toast.present();
   }
@@ -77,16 +91,15 @@ export class Tab2Page implements OnInit {
   }
 
   async remove(id: string): Promise<void> {
-    await this.showToast('Počítadlo úspěšně smazáno');
     await this.counterService.remove(id);
-
+    await this.showToast('Počítadlo úspěšně smazáno');
   }
 
   async clear(): Promise<void> {
     const alert = await this.alertController.create({
       header: 'Potvrzení smazání',
       message: 'Opravdu chcete smazat celou historii počítadel?!',
-      buttons:[
+      buttons: [
         {
           text: 'Zrušit',
           role: 'cancel',
@@ -94,13 +107,13 @@ export class Tab2Page implements OnInit {
         {
           text: 'Smazat vše',
           role: 'destructive',
-          handler: async() => {
+          handler: async () => {
             await this.counterService.clear();
-          }
-        }
-
-      ]
-    })
+            await this.showToast('Celá historie byla vymazána.');
+          },
+        },
+      ],
+    });
     await alert.present();
   }
 }
