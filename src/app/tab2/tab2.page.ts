@@ -80,7 +80,7 @@ export class Tab2Page implements OnInit {
     const toast = await this.toastController.create({
       message,
       duration: 2000,
-      position: 'bottom',
+      position: 'top',
       color: 'dark',
     });
     await toast.present();
